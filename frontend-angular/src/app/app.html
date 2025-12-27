@@ -1,0 +1,25 @@
+<div class="app">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary" *ngIf="authService.isAuthenticated()">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">QuizHub</a>
+      <div class="navbar-nav">
+        <a class="nav-link" routerLink="/quiz" routerLinkActive="active">Bài thi</a>
+        <a class="nav-link" routerLink="/question" routerLinkActive="active" *ngIf="isTeacher()">Câu hỏi</a>
+        <a class="nav-link" routerLink="/result" routerLinkActive="active">Kết quả</a>
+      </div>
+      <div class="navbar-nav ms-auto">
+        <span class="navbar-text me-3">Xin chào, {{ authService.getCurrentUser()?.username }}</span>
+        <button class="btn btn-outline-light" (click)="logout()">Đăng xuất</button>
+      </div>
+    </div>
+  </nav>
+  <main class="container-fluid mt-3">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
+<style>
+  .app {
+    min-height: 100vh;
+  }
+</style>

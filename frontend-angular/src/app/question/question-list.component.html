@@ -1,0 +1,111 @@
+<div class="container">
+  <h1 class="mb-4">Quản lý câu hỏi</h1>
+  <div class="mb-3">
+    <button class="btn btn-primary me-2" (click)="showCreateForm = !showCreateForm" *ngIf="!editingQuestion">
+      <i class="fas fa-plus"></i> Thêm câu hỏi
+    </button>
+    <button class="btn btn-secondary" (click)="loadQuestions()">
+      <i class="fas fa-refresh"></i> Tải lại danh sách
+    </button>
+  </div>
+
+  <!-- Create Question Form -->
+  <div *ngIf="showCreateForm && !editingQuestion" class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Thêm câu hỏi mới</h5>
+      <form (ngSubmit)="createQuestion()">
+        <div class="mb-3">
+          <label for="questionText" class="form-label">Câu hỏi</label>
+          <input type="text" class="form-control" id="questionText" [(ngModel)]="newQuestion.questionText" name="questionText" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Lựa chọn</label>
+          <div *ngFor="let option of newQuestion.options; let i = index; trackBy: trackByIndex" class="input-group mb-2">
+            <input type="text" class="form-control" [(ngModel)]="newQuestion.options[i]" [name]="'option' + i" placeholder="Lựa chọn {{i+1}}" required>
+            <button type="button" class="btn btn-outline-danger" (click)="removeOption(i)">Xóa</button>
+          </div>
+          <button type="button" class="btn btn-outline-secondary" (click)="addOption()">Thêm lựa chọn</button>
+        </div>
+        <div class="mb-3">
+          <label for="correctAnswerIndex" class="form-label">Đáp án đúng</label>
+          <select class="form-control" id="correctAnswerIndex" [(ngModel)]="newQuestion.correctAnswerIndex" name="correctAnswerIndex" required>
+            <option *ngFor="let option of newQuestion.options; let i = index" [value]="i">Đáp án {{i+1}} - {{option || '(trống)'}}</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="points" class="form-label">Điểm</label>
+          <input type="number" class="form-control" id="points" [(ngModel)]="newQuestion.points" name="points" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-success" [disabled]="isCreating">{{ isCreating ? 'Đang lưu...' : 'Lưu' }}</button>
+        <button type="button" class="btn btn-secondary ms-2" (click)="showCreateForm = false">Hủy</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Question Form -->
+  <div *ngIf="editingQuestion" class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Chỉnh sửa câu hỏi</h5>
+      <form (ngSubmit)="saveEdit()">
+        <div class="mb-3">
+          <label for="editQuestionText" class="form-label">Câu hỏi</label>
+          <input type="text" class="form-control" id="editQuestionText" [(ngModel)]="editingQuestion.questionText" name="editQuestionText" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Lựa chọn</label>
+          <div *ngFor="let option of editingQuestion.options; let i = index; trackBy: trackByIndex" class="input-group mb-2">
+            <input type="text" class="form-control" [(ngModel)]="editingQuestion.options[i]" [name]="'editOption' + i" placeholder="Lựa chọn {{i+1}}" required>
+            <button type="button" class="btn btn-outline-danger" (click)="removeEditOption(i)">Xóa</button>
+          </div>
+          <button type="button" class="btn btn-outline-secondary" (click)="addEditOption()">Thêm lựa chọn</button>
+        </div>
+        <div class="mb-3">
+          <label for="editCorrectAnswerIndex" class="form-label">Đáp án đúng</label>
+          <select class="form-control" id="editCorrectAnswerIndex" [(ngModel)]="editingQuestion.correctAnswerIndex" name="editCorrectAnswerIndex" required>
+            <option *ngFor="let option of editingQuestion.options; let i = index" [value]="i">Đáp án {{i+1}} - {{option || '(trống)'}}</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="editPoints" class="form-label">Điểm</label>
+          <input type="number" class="form-control" id="editPoints" [(ngModel)]="editingQuestion.points" name="editPoints" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-success" [disabled]="isEditing">{{ isEditing ? 'Đang lưu...' : 'Lưu thay đổi' }}</button>
+        <button type="button" class="btn btn-secondary ms-2" (click)="cancelEdit()">Hủy</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div *ngIf="questions.length === 0" class="col-12">
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Chưa có câu hỏi nào. Nhấn "Thêm câu hỏi" để tạo câu hỏi đầu tiên.
+      </div>
+    </div>
+    <div *ngFor="let question of questions" class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ question.questionText }}</h5>
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let option of question.options; let i = index" class="list-group-item">
+              {{ i + 1 }}. {{ option }}
+              <span *ngIf="i === question.correctAnswerIndex" class="badge bg-success ms-2">Đúng</span>
+            </li>
+          </ul>
+          <p class="mt-2">Điểm: {{ question.points }}</p>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-outline-primary me-2" (click)="editQuestion(question)">
+            <i class="fas fa-edit"></i> Sửa
+          </button>
+          <select class="form-select d-inline-block w-auto me-2" (change)="addToQuiz(question.id, $event)">
+            <option value="">Thêm vào quiz</option>
+            <option *ngFor="let quiz of quizzes" [value]="quiz.id.toString()">{{ quiz.title }}</option>
+          </select>
+          <button class="btn btn-outline-danger" *ngIf="authService.isAdmin()" (click)="deleteQuestion(question.id!); $event.stopPropagation()">
+            <i class="fas fa-trash"></i> Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
